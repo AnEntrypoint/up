@@ -1,0 +1,5 @@
+- text: 'Post-deploy of User-Agent fix, live GET to GitHub contents API still returns 403 ''User-Agent header required'' identically to pre-fix. Hypothesis: Cloudflare Workers runtime strips/overrides custom User-Agent header on outbound fetch, or GitHub specifically rejects the Workers-default/altered UA string regardless of what''s set. Needs live investigation via exec_js probing an outbound fetch to a UA-echo endpoint.'
+  status: witnessed
+  witness: curl https://wranger.almagestfraternite.workers.dev/ POST -> 502 identical GitHub 403 after redeploy confirmed (Version ID 877907af)
+  id: mut-1783516659996
+  witness_evidence: curl -s -w HTTP_STATUS POST https://wranger.almagestfraternite.workers.dev/ body {path:webhook-test-2.txt,content:second attempt} -> 200 {"path":"webhook-test-2.txt","sha":"5641d5cf7a49d16e28121137248ad4e2175746c3","commit":"4f60b31d9ab0a43557d1816a8901ec86ece3246f"}. User-Agent fix confirmed correct; prior 502 was a transient GitHub-edge blip immediately post-deploy, not a Workers header-stripping bug.

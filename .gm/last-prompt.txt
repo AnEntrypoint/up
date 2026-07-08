@@ -1,0 +1,1 @@
+Set GH_TOKEN using the locally logged in gh CLI tool, and make sure it is working live on wrangler's upload/deploy path (i.e. wrangler secret or env needs GH_TOKEN available during publish, likely for the Cloudflare Worker webhook in this repo). Verify it actually works end to end, not just configured.

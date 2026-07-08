@@ -1,2 +1,10 @@
 node_modules/
 .env
+.gm/pw-sock-*/
+.gm/exec-spool/
+.gm/browser-state/
+.gm/last-dispatch-ts
+.gm/last-instruction-ts
+.gm/long-gap-retry-state
+.gm/turn-state.json
+.wrangler/

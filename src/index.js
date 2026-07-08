@@ -28,6 +28,7 @@ export default {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: 'application/vnd.github.v3+json',
+        'User-Agent': 'up-webhook-worker',
       },
     })
 
@@ -46,6 +47,7 @@ export default {
         Authorization: `Bearer ${token}`,
         Accept: 'application/vnd.github.v3+json',
         'Content-Type': 'application/json',
+        'User-Agent': 'up-webhook-worker',
       },
       body: JSON.stringify({
         message: sha ? `update ${path}` : `add ${path}`,

@@ -1,0 +1,33 @@
+- id: set-gh-token-secret
+  text: 'Set GH_TOKEN wrangler secret on worker ''wranger'' using token from local gh CLI auth (gh auth token), via `npx wrangler secret put GH_TOKEN`. Witness: wrangler secret list shows GH_TOKEN present.'
+  status: pending
+- id: verify-gh-token-scope
+  text: 'Verify gh CLI token has sufficient scope for src/index.js GitHub Contents API usage (GET+PUT /repos/AnEntrypoint/up/contents/{path}). Witness: gh auth status token scopes include ''repo''.'
+  status: pending
+- id: deploy-worker-live
+  text: 'Deploy the worker (npx wrangler deploy) so the GH_TOKEN secret and current src/index.js are live, since secrets alone don''t publish code changes. Witness: wrangler deploy output shows uploaded worker + version.'
+  dependsOn:
+  - set-gh-token-secret
+  status: pending
+- id: live-e2e-webhook-test
+  text: Exercise the live deployed worker end-to-end with a real POST request (path+content body) against its workers.dev URL and confirm GitHub contents API round-trip succeeds (200 response with path/sha/commit), proving GH_TOKEN works live, not just configured.
+  dependsOn:
+  - deploy-worker-live
+  status: pending
+- id: triage-wrangler-toml-dirty
+  text: 'Triage pre-existing uncommitted wrangler.toml change (name: up -> wranger). Deployed worker is ''wranger'' per secret list, so working tree state is the deploy-relevant truth; decide commit vs revert vs leave, and reconcile with .gitignore/CLAUDE.md/.wrangler untracked residuals at CONSOLIDATE.'
+  status: pending
+- id: handle-unused-auth-token-secret
+  text: Note existing AUTH_TOKEN secret on worker is unused by src/index.js (no env.AUTH_TOKEN reference) -- decide leave (harmless, may be intentional future auth) vs flag; do not delete without explicit user instruction since it is unrelated to this GH_TOKEN task.
+  status: pending
+- id: token-rotation-note
+  text: Document/verify that gh CLI-sourced token (gho_... OAuth token) is not the classic long-lived PAT model -- note expiry/rotation behavior so GH_TOKEN secret doesn't silently break later; surface as a caveat in final report, not a blocking task.
+  status: pending
+- id: negative-path-verify
+  text: 'Verify negative/edge paths of the webhook still behave correctly post-deploy: missing path/content -> 400, non-POST -> 405, confirms deploy didn''t regress existing validation while adding token capability.'
+  status: pending
+- id: fix-github-api-user-agent
+  text: Live e2e test revealed GitHub REST API rejects both GET and PUT requests from src/index.js with 403 'Request forbidden by administrative rules... User-Agent header required'. Add a User-Agent header (e.g. 'up-webhook-worker') to both fetch() calls in src/index.js. This blocks live-e2e-webhook-test from passing regardless of GH_TOKEN validity -- discovered mid-EXECUTE, in-spirit fix required to satisfy the original 'make sure it's working live' ask.
+  dependsOn:
+  - deploy-worker-live
+  status: pending
