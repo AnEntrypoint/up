@@ -7,4 +7,5 @@ node_modules/
 .gm/last-instruction-ts
 .gm/long-gap-retry-state
 .gm/turn-state.json
+.gm/residual-check-fired
 .wrangler/
