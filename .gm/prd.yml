@@ -1,33 +1,42 @@
 - id: set-gh-token-secret
   text: 'Set GH_TOKEN wrangler secret on worker ''wranger'' using token from local gh CLI auth (gh auth token), via `npx wrangler secret put GH_TOKEN`. Witness: wrangler secret list shows GH_TOKEN present.'
-  status: pending
+  status: completed
+  witness: npx wrangler secret put GH_TOKEN via `gh auth token | npx wrangler secret put GH_TOKEN` -> 'Success! Uploaded secret GH_TOKEN'; confirmed present via `wrangler secret list` showing AUTH_TOKEN and GH_TOKEN.
 - id: verify-gh-token-scope
   text: 'Verify gh CLI token has sufficient scope for src/index.js GitHub Contents API usage (GET+PUT /repos/AnEntrypoint/up/contents/{path}). Witness: gh auth status token scopes include ''repo''.'
-  status: pending
+  status: completed
+  witness: 'gh auth status -> Logged in to github.com account lanmower, Token scopes: ''gist'', ''read:org'', ''repo'', ''workflow''. ''repo'' scope covers Contents API GET/PUT used by src/index.js.'
 - id: deploy-worker-live
   text: 'Deploy the worker (npx wrangler deploy) so the GH_TOKEN secret and current src/index.js are live, since secrets alone don''t publish code changes. Witness: wrangler deploy output shows uploaded worker + version.'
   dependsOn:
   - set-gh-token-secret
-  status: pending
+  status: completed
+  witness: npx wrangler deploy -> Deployed wranger triggers, https://wranger.almagestfraternite.workers.dev, Version ID 877907af-3965-4f0f-bd2d-cf161d214961 (post User-Agent fix).
 - id: live-e2e-webhook-test
   text: Exercise the live deployed worker end-to-end with a real POST request (path+content body) against its workers.dev URL and confirm GitHub contents API round-trip succeeds (200 response with path/sha/commit), proving GH_TOKEN works live, not just configured.
   dependsOn:
   - deploy-worker-live
-  status: pending
+  status: completed
+  witness: curl -X POST https://wranger.almagestfraternite.workers.dev/ -d '{"path":"webhook-test-2.txt","content":"second attempt"}' -> HTTP 200 {"path":"webhook-test-2.txt","sha":"5641d5cf7a49d16e28121137248ad4e2175746c3","commit":"4f60b31d9ab0a43557d1816a8901ec86ece3246f"}. Real file written to AnEntrypoint/up via GitHub Contents API using GH_TOKEN.
 - id: triage-wrangler-toml-dirty
   text: 'Triage pre-existing uncommitted wrangler.toml change (name: up -> wranger). Deployed worker is ''wranger'' per secret list, so working tree state is the deploy-relevant truth; decide commit vs revert vs leave, and reconcile with .gitignore/CLAUDE.md/.wrangler untracked residuals at CONSOLIDATE.'
-  status: pending
+  status: completed
+  witness: Committed wrangler.toml name=wranger (matches already-live deployed worker confirmed via wrangler secret list/deploy output) in commit e9e520f, resolving the pre-existing dirty state as commit (not revert).
 - id: handle-unused-auth-token-secret
   text: Note existing AUTH_TOKEN secret on worker is unused by src/index.js (no env.AUTH_TOKEN reference) -- decide leave (harmless, may be intentional future auth) vs flag; do not delete without explicit user instruction since it is unrelated to this GH_TOKEN task.
-  status: pending
+  status: completed
+  witness: 'src/index.js grepped for AUTH_TOKEN: zero references. Decision: leave secret in place, unrelated to GH_TOKEN task scope, not deleted without explicit user instruction.'
 - id: token-rotation-note
   text: Document/verify that gh CLI-sourced token (gho_... OAuth token) is not the classic long-lived PAT model -- note expiry/rotation behavior so GH_TOKEN secret doesn't silently break later; surface as a caveat in final report, not a blocking task.
-  status: pending
+  status: completed
+  witness: gh auth status shows token prefix gho_ (GitHub OAuth app token from gh CLI login), not a classic PAT (ghp_). It has no fixed short expiry but will break GH_TOKEN silently if the local gh session is revoked/logged-out/re-authed with narrower scope. Documented as caveat in final user-facing report, non-blocking.
 - id: negative-path-verify
   text: 'Verify negative/edge paths of the webhook still behave correctly post-deploy: missing path/content -> 400, non-POST -> 405, confirms deploy didn''t regress existing validation while adding token capability.'
-  status: pending
+  status: completed
+  witness: curl GET -> 405 'method not allowed'; curl POST missing content -> 400 'missing path or content'; curl POST invalid json -> 400 'invalid json'. All post-deploy on live worker, no regression.
 - id: fix-github-api-user-agent
   text: Live e2e test revealed GitHub REST API rejects both GET and PUT requests from src/index.js with 403 'Request forbidden by administrative rules... User-Agent header required'. Add a User-Agent header (e.g. 'up-webhook-worker') to both fetch() calls in src/index.js. This blocks live-e2e-webhook-test from passing regardless of GH_TOKEN validity -- discovered mid-EXECUTE, in-spirit fix required to satisfy the original 'make sure it's working live' ask.
   dependsOn:
   - deploy-worker-live
-  status: pending
+  status: completed
+  witness: 'Edited src/index.js adding ''User-Agent'': ''up-webhook-worker'' to both fetch() calls (GET check + PUT write). Deployed (Version 877907af). Confirmed fix correct via live 200 response after transient post-deploy 502 cleared; local curl reproduced identical 403 with empty UA, confirming root cause and fix validity.'
