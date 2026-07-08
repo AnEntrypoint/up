@@ -1,8 +1,18 @@
 # up
 
-Webhook repo — POST a `repository_dispatch` event to add a file.
+Webhook worker — POST a file to the repo.
 
-## Usage
+## Via Cloudflare Worker
+
+```bash
+curl -X POST https://up.<your-worker-subdomain>.workers.dev \
+  -H 'Content-Type: application/json' \
+  -d '{"path": "entries/hello.md", "content": "# Hello\n\nfrom the webhook"}'
+```
+
+Requires `GH_TOKEN` set as a worker secret with `repo` scope on `AnEntrypoint/up`.
+
+## Via repository_dispatch (GitHub Actions)
 
 ```bash
 gh api repos/AnEntrypoint/up/dispatches \
@@ -11,17 +21,16 @@ gh api repos/AnEntrypoint/up/dispatches \
   --field client_payload='{"path": "entries/hello.md", "content": "# Hello\n\nfrom the webhook"}'
 ```
 
-`client_payload` fields:
+## Payload
 
 | field     | required | description             |
 |-----------|----------|-------------------------|
 | `path`    | yes      | file path to create     |
 | `content` | yes      | file content to write   |
 
-## Trigger URL
+## Deploy
 
+```bash
+wrangler deploy
+wrangler secret put GH_TOKEN
 ```
-POST https://api.github.com/repos/AnEntrypoint/up/dispatches
-```
-
-Requires a token with `repo` scope.
