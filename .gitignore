@@ -1,5 +1,4 @@
 node_modules/
-.env
 .gm/pw-sock-*/
 .gm/exec-spool/
 .gm/browser-state/
@@ -9,3 +8,4 @@ node_modules/
 .gm/turn-state.json
 .gm/residual-check-fired
 .wrangler/
+config.bat
